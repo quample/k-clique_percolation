@@ -1,10 +1,14 @@
 #!/usr/bin/python
 
 from __future__ import division
+from datetime import datetime
+import sys
 import networkx as nx
 import csv as csv
+import operator as opr
 from itertools import combinations
 from collections import Counter
+from collections import OrderedDict
 from networkx.utils import not_implemented_for
 
 
@@ -21,7 +25,6 @@ def _triangles_and_degree_iter(G, nodes=None):
         gen_degree = Counter(len(vs & (set(G[w]) - {w})) for w in vs)
         ntriangles = sum(k * val for k, val in gen_degree.items())
         yield (v, len(vs), ntriangles, gen_degree)
-
 
 @not_implemented_for('multigraph')
 def _weighted_triangles_and_degree_iter(G, nodes=None, weight='weight'):
@@ -49,10 +52,9 @@ def _weighted_triangles_and_degree_iter(G, nodes=None, weight='weight'):
                                       for k in inbrs & jnbrs)
         yield (i, len(inbrs), 2 * weighted_triangles)
 
-
 @not_implemented_for('directed')
 def clustering(G, nodes=None, weight=None):
-    
+
     if weight is not None:
         td_iter = _weighted_triangles_and_degree_iter(G, nodes, weight)
         clusterc = {v: 0 if t == 0 else t / (d * (d - 1)) for
@@ -66,17 +68,17 @@ def clustering(G, nodes=None, weight=None):
     return clusterc
 
 def _single_shortest_path_length(adj, firstlevel, cutoff):
-    seen = {}                  
-    level = 0                  
-    nextlevel = firstlevel     
+    seen = {}
+    level = 0
+    nextlevel = firstlevel
 
     while nextlevel and cutoff >= level:
-        thislevel = nextlevel  
-        nextlevel = {}         
+        thislevel = nextlevel
+        nextlevel = {}
         for v in thislevel:
             if v not in seen:
-                seen[v] = level  
-                nextlevel.update(adj[v])  
+                seen[v] = level
+                nextlevel.update(adj[v])
                 yield (v, level)
         level += 1
     del seen
@@ -89,13 +91,11 @@ def single_source_shortest_path_length(G, source, cutoff=None):
     nextlevel = {source: 1}
     return dict(_single_shortest_path_length(G.adj, nextlevel, cutoff))
 
-
 def all_pairs_shortest_path_length(G, cutoff=None):
     length = single_source_shortest_path_length
     # TODO This can be trivially parallelized.
     for n in G:
         yield (n, length(G, n, cutoff=cutoff))
-
 
 def single_source_shortest_path(G, source, cutoff=None):
 
@@ -106,15 +106,13 @@ def single_source_shortest_path(G, source, cutoff=None):
         return p1 + p2
     if cutoff is None:
         cutoff = float('inf')
-    nextlevel = {source: 1}     
-    paths = {source: [source]}  
+    nextlevel = {source: 1}
+    paths = {source: [source]}
     return dict(_single_shortest_path(G.adj, nextlevel, paths, cutoff, join))
-
-
 
 def _single_shortest_path(adj, firstlevel, paths, cutoff, join):
 
-    level = 0   
+    level = 0
     nextlevel = firstlevel
     while nextlevel and cutoff > level:
         thislevel = nextlevel
@@ -161,25 +159,55 @@ def shortest_path(G, source=None, target=None, weight=None):
     return paths
 
 
-
-print "-------START------"
+print >> sys.stderr,"-------START------", str(datetime.time(datetime.now()))
 Ipfile = raw_input("enter input file: ")
 G = nx.read_edgelist(Ipfile, nodetype=str, delimiter="\t")
-
-Opfile ="ANALYSIS.txt"
+#G=nx.karate_club_graph()
+Opfile ="ANALYSIS.csv"
 f = open(Opfile,"w")
 writer = csv.writer(f, delimiter = '\t')
 my_analysis = []
-clus = dict(clustering(G))
+#clus = dict(clustering(G))
 length1 = dict(all_pairs_shortest_path_length(G))
 betw = dict(nx.betweenness_centrality(G))
 deg = dict(nx.degree_centrality(G))
 eig = dict(nx.eigenvector_centrality(G))
-f.write("Node\tClustering_Coefficient\tShortest_Path_Length\tShortest_Path\tBetweeness_Centrality\tDegree_Centrality\tEigenVector_Centrality\n")
+
+#sorted_clus=OrderedDict(sorted(clus.iteritems(),key=lambda (k,v): 
+#(v,k),reverse=True))
+sorted_betw=OrderedDict(sorted(betw.iteritems(),key=lambda (k,v): (v,k),reverse=True))
+sorted_deg=OrderedDict(sorted(deg.iteritems(),key=lambda (k,v): (v,k),reverse=True))
+sorted_eig=OrderedDict(sorted(eig.iteritems(),key=lambda (k,v): (v,k),reverse=True))
+#writer1 = csv.writer(open("sorted_clus.csv",'w'), delimiter = '\t')
+#for k,v in sorted_clus.items():
+#    writer1.writerow((k,v))
+writer2 = csv.writer(open("sorted_betw.csv",'w'), delimiter = '\t')
+for k,v in sorted_betw.items():
+    writer2.writerow((k,v))
+writer3 = csv.writer(open("sorted_deg.csv",'w'), delimiter = '\t')
+for k,v in sorted_deg.items():
+    writer3.writerow((k,v))
+writer4 = csv.writer(open("sorted_eig.csv",'w'), delimiter = '\t')
+for k,v in sorted_eig.items():
+    writer4.writerow((k,v))
+
+
+writer.writerow(["Node","Shortest_Path_Length","Shortest_Path","Betweeness_Centrality","Degree_Centrality","EigenVector_Centrality"])
 for i in length1:
         key, value = max(length1[i].iteritems(), key=lambda x:x[1])
-        writer.writerow((i,clus[i],value,shortest_path(G,i,key),betw[i],deg[i],eig[i]))
-        my_analysis.append({i : [clus[i],value,shortest_path(G,i,key),betw[i]]})
-        
-print my_analysis
-print "-------STOP------"
+        writer.writerow((i,value,shortest_path(G,i,key),betw[i],deg[i],eig[i]))
+        #my_analysis.append({i : [clus[i],value,shortest_path(G,i,key),betw[i]]})
+#clus_list = list(sorted_clus)
+betw_list = list(sorted_betw)
+deg_list = list(sorted_deg)
+eig_list = list(sorted_eig)
+rank_dict = {}
+for i in G.nodes():
+    r = betw_list.index(i)+deg_list.index(i)+eig_list.index(i)
+    rank_dict.update({i:r})
+sorted_rank = OrderedDict(sorted(rank_dict.iteritems(),key=lambda (k,v): (v,k)))
+writer5 = csv.writer(open("Rank.csv",'w'))
+for k in sorted_rank.keys():
+    writer5.writerow([k])
+
+print >> sys.stderr, "---------STOP-----------", str(datetime.time(datetime.now()))
