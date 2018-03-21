@@ -12,19 +12,19 @@ lister=[]
 
 print "---------------START---------------"
 
-#Ipfile = raw_input("enter input file: ")
+Ipfile = raw_input("enter input file: ")
 print "Loading Graph."
-G = nx.read_edgelist("hprd.csv", nodetype=str, delimiter="\t")
+G = nx.read_edgelist(Ipfile, nodetype=str, delimiter="\t")
 print "Graph Loaded. "
-#ipfile1= raw_input("enter cancer list file: ")
-#ipfile2= raw_input("enter community file: ")
+ipfile1= raw_input("enter cancer list file: ")
+ipfile2= raw_input("enter community file: ")
 
-with open("hprd_com5.csv","rb") as f2:
+with open(ipfile2,"rb") as f2:
     reader2 = csv.reader(f2, delimiter=" ")
     for i, line in enumerate(reader2):
         community[i]=line
 
-with open("cancerous_proteins.csv", "rb") as f1:
+with open(ipfile1, "rb") as f1:
     reader1 = csv.reader(f1,delimiter="\t")
     for line in reader1:
         known_cancer_prot.extend(line)
