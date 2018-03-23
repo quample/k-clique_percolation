@@ -44,7 +44,11 @@ for k in cancer_out_comm.keys():
                 if (l<cancer_out_comm[k]):
                     cancer_out_comm.update({k:int(l)})                                
 
-with open ('comm_sp_length1.csv',"w") as q:
+handle,extension = ipfile2.split(".")
+opfile='comm_sp_len_'+handle+'.csv'
+with open (opfile,"w") as q:
     wri= csv.writer(q,delimiter="\t")
     for k,v in cancer_out_comm.items():
         wri.writerow((k,v))
+        
+print "----------------END----------------"
