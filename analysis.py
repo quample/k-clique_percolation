@@ -162,24 +162,24 @@ def shortest_path(G, source=None, target=None, weight=None):
 print >> sys.stderr,"-------START------", str(datetime.time(datetime.now()))
 Ipfile = raw_input("enter input file: ")
 G = nx.read_edgelist(Ipfile, nodetype=str, delimiter="\t")
-#G=nx.karate_club_graph()
-Opfile ="ANALYSIS.csv"
+
+Opfile ="centrality_results.csv"
 f = open(Opfile,"w")
 writer = csv.writer(f, delimiter = '\t')
 my_analysis = []
-#clus = dict(clustering(G))
+#clos = dict(nx.closeness_centrality(G))
 length1 = dict(all_pairs_shortest_path_length(G))
 betw = dict(nx.betweenness_centrality(G))
 deg = dict(nx.degree_centrality(G))
 eig = dict(nx.eigenvector_centrality(G))
 
-#sorted_clus=OrderedDict(sorted(clus.iteritems(),key=lambda (k,v): 
+#sorted_clos=OrderedDict(sorted(clos.iteritems(),key=lambda (k,v): 
 #(v,k),reverse=True))
 sorted_betw=OrderedDict(sorted(betw.iteritems(),key=lambda (k,v): (v,k),reverse=True))
 sorted_deg=OrderedDict(sorted(deg.iteritems(),key=lambda (k,v): (v,k),reverse=True))
 sorted_eig=OrderedDict(sorted(eig.iteritems(),key=lambda (k,v): (v,k),reverse=True))
-#writer1 = csv.writer(open("sorted_clus.csv",'w'), delimiter = '\t')
-#for k,v in sorted_clus.items():
+#writer1 = csv.writer(open("sorted_clos.csv",'w'), delimiter = '\t')
+#for k,v in sorted_clos.items():
 #    writer1.writerow((k,v))
 writer2 = csv.writer(open("sorted_betw.csv",'w'), delimiter = '\t')
 for k,v in sorted_betw.items():
@@ -192,18 +192,18 @@ for k,v in sorted_eig.items():
     writer4.writerow((k,v))
 
 
-writer.writerow(["Node","Shortest_Path_Length","Shortest_Path","Betweeness_Centrality","Degree_Centrality","EigenVector_Centrality"])
+writer.writerow(["Node","Shortest_Path_Length","Shortest_Path","Betweeness_Centrality","Degree_Centrality","EigenVector_Centrality","Closseness_Centrality"])
 for i in length1:
         key, value = max(length1[i].iteritems(), key=lambda x:x[1])
-        writer.writerow((i,value,shortest_path(G,i,key),betw[i],deg[i],eig[i]))
-        #my_analysis.append({i : [clus[i],value,shortest_path(G,i,key),betw[i]]})
-#clus_list = list(sorted_clus)
+        writer.writerow((i,value,shortest_path(G,i,key),betw[i],deg[i],eig[i],clos[i]))
+
 betw_list = list(sorted_betw)
 deg_list = list(sorted_deg)
 eig_list = list(sorted_eig)
+clos_list= list(sorted_clos)
 rank_dict = {}
 for i in G.nodes():
-    r = betw_list.index(i)+deg_list.index(i)+eig_list.index(i)
+    r = betw_list.index(i)+deg_list.index(i)+eig_list.index(i)+clos_list.index(i)
     rank_dict.update({i:r})
 sorted_rank = OrderedDict(sorted(rank_dict.iteritems(),key=lambda (k,v): (v,k)))
 writer5 = csv.writer(open("Rank.csv",'w'))
