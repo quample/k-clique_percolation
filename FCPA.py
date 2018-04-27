@@ -108,37 +108,38 @@ def get_fast_percolated_cliques(G,k):
     print "Node Components Assigned. "
     return componentToNodes.values()
 
-print "---------------START---------------"
+if __name__ == '__main__':
+    print "---------------START---------------"
 
-Ipfile = raw_input("enter input file: ")
-print "Loading Graph."
-G = nx.read_edgelist(Ipfile, nodetype=str, delimiter="\t")
-print "Graph Loaded. "
+    Ipfile = raw_input("enter input file: ")
+    print "Loading Graph."
+    G = nx.read_edgelist(Ipfile, nodetype=str, delimiter="\t")
+    print "Graph Loaded. "
 
-for k in range(5,11):
-    handle,extension = Ipfile.split(".")
-    Opfile= handle+"_com"+str(k)+"."+extension
-    Opfile2=handle+"_node_details"+str(k)+"."+extension
-    f = open(Opfile, 'w')
-    f2 = open(Opfile2,"w")
-    com_count=dict.fromkeys(G,0)
-    node_comm=dict()
-    node_comm_size=dict()
-    for c in get_fast_percolated_cliques(G, k):
-        f.write(" ".join([str(x) for x in c]))
-        f.write("\n")
+    for k in range(5,11):
+        handle,extension = Ipfile.split(".")
+        Opfile= handle+"_com"+str(k)+"."+extension
+        Opfile2=handle+"_node_details"+str(k)+"."+extension
+        f = open(Opfile, 'w')
+        f2 = open(Opfile2,"w")
+        com_count=dict.fromkeys(G,0)
+        node_comm=dict()
+        node_comm_size=dict()
+        for c in get_fast_percolated_cliques(G, k):
+            f.write(" ".join([str(x) for x in c]))
+            f.write("\n")
+            
+            for x in c:
+                com_count[x]+=1
+                node_comm.setdefault(x,[])
+                len1= str(len(c))
+                node_comm[x].append("\t".join([len1]))
+                node_comm[x].append(",".join(list(c)))
         
-        for x in c:
-            com_count[x]+=1
-            node_comm.setdefault(x,[])
-            len1= str(len(c))
-            node_comm[x].append("\t".join([len1]))
-            node_comm[x].append(",".join(list(c)))
+        writer = csv.writer(f2, delimiter = '\t')
+        for key,vall in node_comm.iteritems():
+            writer.writerow([key]+[com_count[key]]+vall)
     
-    writer = csv.writer(f2, delimiter = '\t')
-    for key,vall in node_comm.iteritems():
-        writer.writerow([key]+[com_count[key]]+vall)
- 
-    f.close()
-    f2.close()
-print "----------------END----------------"
+        f.close()
+        f2.close()
+    print "----------------END----------------"
