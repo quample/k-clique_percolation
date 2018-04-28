@@ -1,5 +1,5 @@
-# k-clique_percolation
-python implementation of fast k-clique percolation
+# Effect of community structures in cancer protein identfication
+python codes and data files for the project titled- "Effect of community structures in cancer protein identfication" 
 
 The FCPA.py is the actual Python implementation of the fast k-clique percolation algorithm.Accepts a network in the edgelist format. Outputs 2 types of files; 1 actual community files, where each new line corresponds to a new community of size atleast k. The second output file represents the details of each of the nodes in the community file. The program is designed to output these 2 files types recursively for k values 5 to 10.
 
